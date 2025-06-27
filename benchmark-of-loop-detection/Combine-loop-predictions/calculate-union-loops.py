@@ -1,27 +1,22 @@
-from collections import Counter
+from collections import defaultdict
 import numpy as np
 
 def parse_bedpe(fil):
 
-    pos1 = {}
-    pos2 = {}
-    loops = {}
+    pos1 = defaultdict(list)
+    pos2 = defaultdict(list)
+    loops = defaultdict(list)
     with open(fil, 'r') as source:
-        if ('H3K4me3' in fil) or ('Job' in fil):
-            source.readline()
         for line in source:
             parse = line.rstrip().split()
             chrom = parse[0]
             if chrom in ['chrM']:
                 continue
+
             c1, s1, e1, c2, s2, e2 = parse[:6]
             s1, e1, s2, e2 = int(s1), int(e1), int(s2), int(e2)
             p1 = (s1 + e1) // 2
             p2 = (s2 + e2) // 2
-            if not chrom in pos1:
-                pos1[chrom] = []
-                pos2[chrom] = []
-                loops[chrom] = []
             pos1[chrom].append(p1)
             pos2[chrom].append(p2)
             loops[chrom].append((c1, s1, e1, c2, s2, e2))
@@ -37,6 +32,7 @@ def check_in(p1, p2, ref1, ref2, ref_loops, c, thre=10000):
     hit = []
     if not c in ref1:
         return hit
+    
     tmp1 = ref1[c]
     tmp2 = ref2[c]
     thre = min(thre, abs(p2-p1)*0.2)
@@ -49,46 +45,75 @@ def check_in(p1, p2, ref1, ref2, ref_loops, c, thre=10000):
     
     return hit
 
-names = ['ChIAPET-RNAPII', 'ChIAPET-CTCF', 'MicroC-Feng', 'HiC-Feng', 'MicroC-Job', 'HiC-Job', 'PLACSeq-H3K4me3']
 ### H1ESC
 fil_list = [
-    'H1ESC_RNAPII.Feng.loops.bedpe',
-    'H1ESC_CTCF.Feng.loops.bedpe',
-    'H1ESC-MicroC.Feng.loops.bedpe',
-    'H1ESC-HiC.Feng.loops.bedpe',
-    'H1ESC-MicroC.Job.loops.4DNFI3RMWQ85.bedpe',
-    'H1ESC-HiC.Job.loops.4DNFI4PMUZNU.bedpe',
-    #'H1ESC-H3K4me3.Bing.loops.bedpe',
-    'H1ESC-PLAC-H3K4me3.conserved.bedpe'
+    'H1ESC_CTCF.Feng.loops.peak_based.bedpe',
+    'H1ESC_RNAPII.Feng.loops.peak_based.bedpe',
+    'H1ESC.PLAC-H3K4me3.peakachu.clustered.peak_based.bedpe',
+    'H1ESC-MicroC.Feng.loops.2kb.bedpe',
+    'H1ESC-HiC.Feng.loops.2kb.bedpe',
+    'H1ESC_CTCF.Feng.loops.2kb.bedpe',
+    'H1ESC_RNAPII.Feng.loops.2kb.bedpe',
+    'H1ESC-MicroC.Job.loops.4DNFI3RMWQ85.5kb.bedpe',
+    'H1ESC-HiC.Job.loops.4DNFI4PMUZNU.5kb.bedpe',
+    'H1ESC-MicroC.Feng.loops.5kb.bedpe',
+    'H1ESC-HiC.Feng.loops.5kb.bedpe',
+    'H1ESC_CTCF.Feng.loops.5kb.bedpe',
+    'H1ESC_RNAPII.Feng.loops.5kb.bedpe',
+    'H1ESC.PLAC-H3K4me3.peakachu.clustered.5kb.bedpe',
+    'H1ESC-MicroC.Job.loops.4DNFI3RMWQ85.10kb.bedpe',
+    'H1ESC-HiC.Job.loops.4DNFI4PMUZNU.10kb.bedpe',
+    'H1ESC-MicroC.Feng.loops.10kb.bedpe',
+    'H1ESC-HiC.Feng.loops.10kb.bedpe',
+    'H1ESC_PLACSeq.Bing.loops.10kb.bedpe'
 ]
+names = ['CTCF-ChIAPET', 'RNAPII-ChIAPET', 'H3K4me3-PLACSeq', 'Micro-C', 'Hi-C',
+         'CTCF-ChIAPET', 'RNAPII-ChIAPET', 'Micro-C', 'Hi-C', 'Micro-C', 'Hi-C',
+         'CTCF-ChIAPET', 'RNAPII-ChIAPET', 'H3K4me3-PLACSeq', 'Micro-C', 'Hi-C', 'Micro-C',
+         'Hi-C', 'H3K4me3-PLACSeq']
 outfil = 'H1ESC.union-loops.bedpe'
 '''
 ### HFFc6
 fil_list = [
-    'HFFc6_RNAPII.Feng.loops.bedpe',
-    'HFFc6-CTCF.Feng.loops.bedpe',
-    'HFFc6-MicroC.Feng.loops.bedpe',
-    'HFFc6-HiC.Feng.loops.bedpe',
-    'HFFc6-MicroC.Job.loops.4DNFIIQP46FO.bedpe',
-    'HFFc6-HiC.Job.loops.4DNFI212GCZW.bedpe',
-    #'HFFc6-H3K4me3.Bing.loops.bedpe',
-    'HFFc6-PLAC-H3K4me3.conserved.bedpe'
+    'HFFc6_CTCF.Feng.loops.peak_based.bedpe',
+    'HFFc6_RNAPII.Feng.loops.peak_based.bedpe',
+    'HFFc6.PLAC-H3K4me3.peakachu.clustered.peak_based.bedpe',
+    'HFFc6-MicroC.Feng.loops.2kb.bedpe',
+    'HFFc6-HiC.Feng.loops.2kb.bedpe',
+    'HFFc6_CTCF.Feng.loops.2kb.bedpe',
+    'HFFc6_RNAPII.Feng.loops.2kb.bedpe',
+    'HFFc6-MicroC.Job.loops.4DNFIIQP46FO.5kb.bedpe',
+    'HFFc6-HiC.Job.loops.4DNFI212GCZW.5kb.bedpe',
+    'HFFc6-MicroC.Feng.loops.5kb.bedpe',
+    'HFFc6-HiC.Feng.loops.5kb.bedpe',
+    'HFFc6_CTCF.Feng.loops.5kb.bedpe',
+    'HFFc6_RNAPII.Feng.loops.5kb.bedpe',
+    'HFFc6.PLAC-H3K4me3.peakachu.clustered.5kb.bedpe',
+    'HFFc6-MicroC.Job.loops.4DNFIIQP46FO.10kb.bedpe',
+    'HFFc6-HiC.Job.loops.4DNFI212GCZW.10kb.bedpe',
+    'HFFc6-MicroC.Feng.loops.10kb.bedpe',
+    'HFFc6-HiC.Feng.loops.10kb.bedpe',
+    'HFFc6_PLACSeq.Bing.loops.10kb.bedpe'
 ]
+names = ['CTCF-ChIAPET', 'RNAPII-ChIAPET', 'H3K4me3-PLACSeq', 'Micro-C', 'Hi-C',
+         'CTCF-ChIAPET', 'RNAPII-ChIAPET', 'Micro-C', 'Hi-C', 'Micro-C', 'Hi-C',
+         'CTCF-ChIAPET', 'RNAPII-ChIAPET', 'H3K4me3-PLACSeq', 'Micro-C', 'Hi-C', 'Micro-C',
+         'Hi-C', 'H3K4me3-PLACSeq']
 outfil = 'HFFc6.union-loops.bedpe'
 '''
-
 loop_sets = [parse_bedpe(f) for f in fil_list]
 thre = 15000
 
 cache = set()
-conserved_loops = [] # loops appearing at least twice
+union_loops = []
 for i in range(len(loop_sets)):
     query1, query2, query_loops = loop_sets[i]
     for c in query1:
         for p1, p2, tmp_loop in zip(query1[c], query2[c], query_loops[c]):
             if tmp_loop in cache: # current loop have been added in previous steps
                 continue
-            ID = [0, 0, 0, 0, 0, 0, 0]
+
+            ID = [0] * len(fil_list)
             ID[i] = 1
             for j in range(len(loop_sets)):
                 if i==j:
@@ -102,12 +127,12 @@ for i in range(len(loop_sets)):
 
             cache.add(tmp_loop)
             
-            loop_label = ','.join([names[ii] for ii in range(len(ID)) if ID[ii]==1])
+            loop_label = ','.join(sorted(set([names[ii] for ii in range(len(ID)) if ID[ii]==1])))
             if sum(ID) >= 1:
-                conserved_loops.append(tmp_loop + (loop_label,))
+                union_loops.append(tmp_loop + (loop_label,))
 
 with open(outfil, 'w') as out:
-    for loop in sorted(conserved_loops):
+    for loop in sorted(union_loops):
         out.write('\t'.join(list(map(str, loop)))+'\n')
 
     

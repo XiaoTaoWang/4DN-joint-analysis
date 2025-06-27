@@ -147,14 +147,6 @@ def distance_normalize(uri, loops, expected, width, max_apart=2000000, min_size=
 uri = sys.argv[1]
 cell = sys.argv[2]
 outpickle = sys.argv[3]
-'''
-balance = sys.argv[3]
-
-if balance == 'ICE':
-    balance = True
-else:
-    balance = False
-'''
 balance = False
 chroms = ['chr'+str(i) for i in range(1, 23)] + ['chrX']
 width = 15

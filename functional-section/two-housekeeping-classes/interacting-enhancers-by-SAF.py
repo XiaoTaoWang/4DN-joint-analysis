@@ -37,7 +37,7 @@ def load_enhancer_num(infil):
     return loop_nums
 
 SAF_folder = 'Frank'
-cell = 'H1ESC'
+cell = 'HFFc6'
 colors = ['r', '#1F78B4', 'k']
 loop_nums = load_enhancer_num('{0}.human-housekeeping.txt'.format(cell))
 saf_fil = os.path.join(SAF_folder, '{0}_saf_gene.csv'.format(cell))
@@ -56,7 +56,7 @@ for g in loop_nums:
 
 print(len(high_saf), len(medium_saf), len(low_saf))
 
-fig = plt.figure(figsize=(0.9, 1.3))
+fig = plt.figure(figsize=(0.6, 1.2))
 ax = fig.add_subplot(111)
 bp = sns.violinplot(data=[high_saf, low_saf], ax=ax, palette=colors)
 for violin in ax.collections[:]:

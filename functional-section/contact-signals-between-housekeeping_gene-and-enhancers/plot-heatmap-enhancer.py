@@ -17,7 +17,7 @@ def generate_matrices(filenames):
     count = 0
     for fil in filenames:
         count += 1
-        arrs_real = joblib.load(os.path.join('intermediate-pkls', fil))
+        arrs_real = joblib.load(fil)
         indices.extend(list(arrs_real))
 
     indices_count = Counter(indices)
@@ -25,7 +25,7 @@ def generate_matrices(filenames):
     indices = [i for i in indices_count if indices_count[i]==count]
     matrices_real = []
     for fil in filenames:
-        arrs_real = joblib.load(os.path.join('intermediate-pkls', fil))
+        arrs_real = joblib.load(fil)
         tmp = np.r_[[arrs_real[i].ravel() for i in indices]]
         matrices_real.append(tmp)
 
@@ -55,8 +55,8 @@ cell = 'H1ESC'
 
 # H1ESC, 2k
 filenames = [
-    'H1ESC_ChIA-PET_Pol2.Enhancer_backgrounds.2kb.pkl',
     'H1ESC_PLAC-Seq.Enhancer_backgrounds.2kb.pkl',
+    'H1ESC_ChIA-PET_Pol2.Enhancer_backgrounds.2kb.pkl',
     'H1ESC_ChIA-PET_CTCF.Enhancer_backgrounds.2kb.pkl',
     'H1ESC_MicroC.Enhancer_backgrounds.2kb.pkl',
     'H1ESC_Hi-C_FA_DSG_DpnII.Enhancer_backgrounds.2kb.pkl'
@@ -64,20 +64,20 @@ filenames = [
 '''
 # HFFc6, 2k
 filenames = [
-    'HFFc6_ChIA-PET_Pol2.Enhancer_backgrounds.2kb.pkl',
     'HFFc6_PLAC-Seq.Enhancer_backgrounds.2kb.pkl',
+    'HFFc6_ChIA-PET_Pol2.Enhancer_backgrounds.2kb.pkl',
     'HFFc6_ChIA-PET_CTCF.Enhancer_backgrounds.2kb.pkl',
     'HFFc6_MicroC.Enhancer_backgrounds.2kb.pkl',
     'HFFc6_Hi-C_FA_DSG_DpnII.Enhancer_backgrounds.2kb.pkl'
 ]
 '''
-labels = ['Pol2 ChIA-PET', 'H3K4me3 PLAC-Seq', 'CTCF ChIA-PET',
+labels = ['H3K4me3 PLAC-Seq', 'Pol2 ChIA-PET', 'CTCF ChIA-PET',
           'Micro-C', 'Hi-C']
 
 matrices_real = generate_matrices(filenames)
 matrices_real = sort_by_the_whole_region(matrices_real)
 
-fig = plt.figure(figsize=(6.8, 2.3))
+fig = plt.figure(figsize=(6.8, 0.8))
 gc = GridSpec(1, 5, figure=fig, left=0.05, right=0.95, bottom=0.05, top=0.95,
               wspace=0.3)
 max_values = []

@@ -2,12 +2,17 @@ import numpy as np
 from upsetplot import plot
 from upsetplot import from_memberships
 import matplotlib.pyplot as plt
-from itertools import combinations
-from matplotlib.colors import LogNorm
 import seaborn as sns
 import pandas as pd
-import sys, bisect, random, os, joblib
+import sys, bisect, random, joblib, matplotlib
 from matplotlib.colors import Normalize
+from palettable.colorbrewer.diverging import RdYlBu_7_r
+
+new_rc_params = {'text.usetex': False,
+"svg.fonttype": 'none'
+}
+
+matplotlib.rcParams.update(new_rc_params)
 
 class MidpointNormalize(Normalize):
     def __init__(self, vmin=None, vmax=None, midpoint=None, clip=False):
@@ -150,7 +155,6 @@ def check_in(p, List, mode='binary', min_len=15000):
             score += (e-s)
         score = score / interval
 
-    
     return score
 
 cell = sys.argv[1].split('.')[0]
@@ -158,46 +162,27 @@ anchors_by_platforms = {}
 with open(sys.argv[1], 'r') as source:
     for line in source:
         parse = line.rstrip().split()
-        tmp = parse[-1].split(',')
-        labels = []
-        for t in tmp:
-            if t in ['MicroC-Feng', 'MicroC-Job']:
-                labels.append('Micro-C')
-            elif t in ['HiC-Feng', 'HiC-Job']:
-                labels.append('Hi-C')
-            else:
-                labels.append(t)
+        labels = parse[-1].split(',')
         key = tuple(sorted(set(labels)))
-
         if not key in anchors_by_platforms:
             anchors_by_platforms[key] = []
         anchors_by_platforms[key].append((parse[0], int(parse[1]), int(parse[2])))
 
 # data for upset plot
-categories = [list(i) for i in anchors_by_platforms]
-counts_by_class = [len(anchors_by_platforms[i]) for i in anchors_by_platforms]
+sort_table = [(len(anchors_by_platforms[i]), i) for i in anchors_by_platforms]
+sort_table.sort(reverse=True)
+categories = [list(k[1]) for k in sort_table]
+counts_by_class = [k[0] for k in sort_table]
 print(counts_by_class)
 data = from_memberships(
     categories,
     data = counts_by_class
 )
 fig = plt.figure(figsize=(4, 2))
-plot(data, fig=fig, sort_categories_by='cardinality', sort_by=None)
+plot(data, fig=fig, sort_categories_by='degree', sort_by=None)
 plt.savefig('upset-anchors.svg', dpi=300, bbox_inches='tight')
 plt.close()
-
-# extract anchors in order
-if cell == 'H1ESC':
-    labels_in_order = ['Micro-C', 'Hi-C', 'ChIAPET-RNAPII', 'ChIAPET-CTCF', 'PLACSeq-H3K4me3'] # H1
-else:
-    labels_in_order = ['Micro-C', 'ChIAPET-RNAPII', 'Hi-C', 'ChIAPET-CTCF', 'PLACSeq-H3K4me3'] # HFF
-
-key_in_order = []
-for n in range(1, 6):
-    queue = list(combinations(labels_in_order, n))
-    for q in queue:
-        key_in_order.append(q)
-
+'''
 # data for fold enrichment
 chromfil = 'hg38.chrom.sizes'
 gapfil = 'hg38.gap.txt'
@@ -214,12 +199,11 @@ states_code = [
     '10_Weak_Transcribed',
     '11_Polycomb_Repressed'
 ]
-chromhmm_folder = '/Users/xtwang/workspace/4DN-Joint-Analysis/4DN-method-comparison/Loop-calls-HiC2.5/chromhmm-states-myrun/4DN_H1_HFF_8marks_12'
-hmm_fil = os.path.join(chromhmm_folder, '{0}.ChromHMM_8marks_12states.bed'.format(cell))
+hmm_fil = '{0}.ChromHMM_8marks_12states.bed'.format(cell)
 
 states = parse_hmm(hmm_fil)
 enrich_pool = []
-for key in key_in_order:
+for key in categories:
     real_anchors = anchors_by_platforms[tuple(sorted(key))]
     score_pool = []
     for n in range(101):
@@ -249,15 +233,15 @@ enrich_pool = enrich_pool.T
 
 joblib.dump(enrich_pool, '{0}-anchors.hmm-enrich.12state.pkl'.format(cell))
 
-fig = plt.figure(figsize=(15.6, 4.8))
+log_enrich = np.log2(enrich_pool + 1)
+fig = plt.figure(figsize=(11.8, 3.4))
 ax = fig.add_subplot(111)
-data = pd.DataFrame(enrich_pool, index=states_code)
-cg = sns.heatmap(data, cmap='RdBu_r', annot=True, ax=ax, norm=MidpointNormalize(vmin=0, vmax=enrich_pool.max(), midpoint=1), annot_kws={'fontsize':7})
+data = pd.DataFrame(log_enrich, index=states_code)
+cg = sns.heatmap(data, cmap=RdYlBu_7_r.get_mpl_colormap(), annot=enrich_pool,
+                 ax=ax, annot_kws={'fontsize':7})
 plt.setp(cg.yaxis.get_majorticklabels(), rotation=0, fontsize=10)
 plt.setp(cg.xaxis.get_majorticklabels(), rotation=45, ha='right', fontsize=10)
 cg.set_clip_on(False)
 plt.savefig('{0}.hmm-fc.12state.svg'.format(cell), dpi=300, bbox_inches='tight')
 plt.close()
-
-                
-
+'''
